@@ -4,9 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/docjaq-personal/Documents/git/RayTracer/main.cpp" "/Users/docjaq-personal/Documents/git/RayTracer/cmake-build-debug/CMakeFiles/RayTracer.dir/main.cpp.o"
+  "/cygdrive/d/Git/Raytracer/main.cpp" "/cygdrive/d/Git/Raytracer/cmake-build-debug/CMakeFiles/RayTracer.dir/main.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "AppleClang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH

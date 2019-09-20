@@ -6,19 +6,19 @@
 
 #IncludeRegexTransform: 
 
-/Users/docjaq-personal/Documents/git/RayTracer/main.cpp
+/cygdrive/d/Git/Raytracer/main.cpp
 iostream
 -
 fstream
 -
 ray.h
-/Users/docjaq-personal/Documents/git/RayTracer/ray.h
+/cygdrive/d/Git/Raytracer/ray.h
 
-/Users/docjaq-personal/Documents/git/RayTracer/ray.h
+/cygdrive/d/Git/Raytracer/ray.h
 vec3.h
-/Users/docjaq-personal/Documents/git/RayTracer/vec3.h
+/cygdrive/d/Git/Raytracer/vec3.h
 
-/Users/docjaq-personal/Documents/git/RayTracer/vec3.h
+/cygdrive/d/Git/Raytracer/vec3.h
 math.h
 -
 stdlib.h

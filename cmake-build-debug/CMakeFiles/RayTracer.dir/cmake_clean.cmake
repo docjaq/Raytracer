@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/RayTracer.dir/main.cpp.o"
   "RayTracer.pdb"
-  "RayTracer"
+  "RayTracer.exe"
+  "libRayTracer.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.
