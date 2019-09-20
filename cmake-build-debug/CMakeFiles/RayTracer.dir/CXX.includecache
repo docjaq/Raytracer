@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/docjaq-personal/Documents/git/RayTracer/main.cpp
+iostream
+-
+fstream
+-
+ray.h
+/Users/docjaq-personal/Documents/git/RayTracer/ray.h
+
+/Users/docjaq-personal/Documents/git/RayTracer/ray.h
+vec3.h
+/Users/docjaq-personal/Documents/git/RayTracer/vec3.h
+
+/Users/docjaq-personal/Documents/git/RayTracer/vec3.h
+math.h
+-
+stdlib.h
+-
+iostream
+-
+
