@@ -6,6 +6,14 @@
 
 #IncludeRegexTransform: 
 
+/cygdrive/d/Git/Raytracer/hitable.h
+ray.h
+/cygdrive/d/Git/Raytracer/ray.h
+
+/cygdrive/d/Git/Raytracer/hitable_list.h
+hitable.h
+/cygdrive/d/Git/Raytracer/hitable.h
+
 /cygdrive/d/Git/Raytracer/main.cpp
 iostream
 -
@@ -13,10 +21,22 @@ fstream
 -
 ray.h
 /cygdrive/d/Git/Raytracer/ray.h
+hitable.h
+/cygdrive/d/Git/Raytracer/hitable.h
+float.h
+/cygdrive/d/Git/Raytracer/float.h
+sphere.h
+/cygdrive/d/Git/Raytracer/sphere.h
+hitable_list.h
+/cygdrive/d/Git/Raytracer/hitable_list.h
 
 /cygdrive/d/Git/Raytracer/ray.h
 vec3.h
 /cygdrive/d/Git/Raytracer/vec3.h
+
+/cygdrive/d/Git/Raytracer/sphere.h
+hitable.h
+/cygdrive/d/Git/Raytracer/hitable.h
 
 /cygdrive/d/Git/Raytracer/vec3.h
 math.h

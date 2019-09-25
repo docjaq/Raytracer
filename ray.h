@@ -12,7 +12,6 @@ class ray{
             B = b;
         }
 
-        //what does a const function mean
         vec3 origin() const {
             return A;
         }

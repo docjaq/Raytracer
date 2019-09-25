@@ -80,10 +80,19 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/cygdrive/d/Git/Raytracer/hitable.h">
+			<Option target="RayTracer"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Git/Raytracer/hitable_list.h">
+			<Option target="RayTracer"/>
+		</Unit>
 		<Unit filename="/cygdrive/d/Git/Raytracer/main.cpp">
 			<Option target="RayTracer"/>
 		</Unit>
 		<Unit filename="/cygdrive/d/Git/Raytracer/ray.h">
+			<Option target="RayTracer"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Git/Raytracer/sphere.h">
 			<Option target="RayTracer"/>
 		</Unit>
 		<Unit filename="/cygdrive/d/Git/Raytracer/vec3.h">
