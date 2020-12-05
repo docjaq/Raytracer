@@ -1,3 +1,0 @@
-/cygdrive/d/Git/Raytracer/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/cygdrive/d/Git/Raytracer/cmake-build-debug/CMakeFiles/RayTracer.dir
-/cygdrive/d/Git/Raytracer/cmake-build-debug/CMakeFiles/edit_cache.dir

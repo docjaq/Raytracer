@@ -7,25 +7,23 @@ class ray{
 
     public:
         ray(){}
-        ray(const vec3& a, const vec3& b) {
-            A = a;
-            B = b;
-        }
+		ray(const point3 &originIn, const vec3 &directionIn) : orig(originIn), dir(directionIn) {}
 
-        vec3 origin() const {
-            return A;
+        point3 origin() const {
+            return orig;
         }
 
         vec3 direction() const{
-            return B;
+            return dir;
         }
 
-        vec3 point_at_parameter(float t) const{
-            return A + t*B;
+		//t parameterises our ray
+        vec3 point_at_parameter(double t) const{
+            return orig + t*dir;
         }
 
-        vec3 A;
-        vec3 B;
+        point3 orig;
+		vec3 dir;
 };
 
 #endif //RAYTRACER_RAY_H
