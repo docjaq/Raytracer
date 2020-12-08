@@ -18,7 +18,7 @@ class ray{
         }
 
 		//t parameterises our ray
-        vec3 point_at_parameter(double t) const{
+        vec3 at(double t) const{
             return orig + t*dir;
         }
 

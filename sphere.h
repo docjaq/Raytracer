@@ -1,51 +1,51 @@
 #ifndef RAYTRACER_SPHERE_H
 #define RAYTRACER_SPHERE_H
 
-#include "hitable.h"
+#include "hittable.h"
 
-class sphere: public hitable {
+class sphere: public hittable {
 public:
     sphere(){}
-    sphere(vec3 cen, double r): centre(cen), radius(r) {};
+    sphere(point3 cen, double r): centre(cen), radius(r) {};
 
-    virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const;
+    virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
 
-    vec3 centre;
+    point3 centre;
     double radius;
 };
 
 bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     vec3 oc = r.origin() - centre;
-    double a = dot(r.direction(), r.direction());
-    double b = dot(oc, r.direction());
-    double c = dot(oc, oc) - radius*radius;
-    double discriminant = b*b - a*c;
+	double a = r.direction().length_squared();
+	double half_b = dot(oc, r.direction());
+	double c = oc.length_squared() - radius * radius;
+	
+	double discriminant = half_b * half_b - a * c;
 
-    if (discriminant > 0){
 
-        double temp = (-b - sqrt(b*b - a*c))/a;
-        if(temp < t_max && temp > t_min){
+	if (discriminant < 0) {
+		return false;
+	}
+	auto sqrt_disc = sqrt(discriminant);
+	
+	//Find the nearest root that lies in the acceptable range
+	auto root = (-half_b - sqrt_disc) / a;
 
-            rec.t = temp;
-            rec.p = r.point_at_parameter(rec.t);
-            rec.normal = (rec.p - centre)/radius;
+	if (root < t_min || t_max < root) {
 
-            return true;
-        }
+		root = (-half_b + sqrt_disc) / a;
+		if (root < t_min || t_max < root) {
+			return false;
+		}
+	}
 
-        temp = (-b + sqrt(b*b - a*c))/a;
-        if(temp < t_max && temp > t_min){
+	rec.t = root;
+	rec.p = r.at(rec.t);
+	rec.normal = (rec.p - centre) / radius;
+	vec3 outward_normal = (rec.p - centre) / radius;
+	rec.set_face_normal(r, outward_normal);
 
-            rec.t = temp;
-            rec.p = r.point_at_parameter(rec.t);
-            rec.normal = (rec.p - centre)/radius;
-
-            return true;
-        }
-
-    }
-
-    return false;
+	return true;
 }
 
 
