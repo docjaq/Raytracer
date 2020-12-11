@@ -48,21 +48,40 @@ int main() {
 	camera cam;
 
 	auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
-	auto material_sphere_lambertian_red = make_shared<lambertian>(color(0.7, 0.3, 0.3));
-	auto material_sphere_metal = make_shared<metal>(color(0.8, 0.8, 0.8));
-	auto material_sphere_metal_green = make_shared<metal>(color(0.0, 0.6, 0.2));
+	//auto material_sphere_lambertian_red = make_shared<lambertian>(color(0.7, 0.3, 0.3));
+	//auto material_sphere_metal = make_shared<metal>(color(0.8, 0.8, 0.8), 0.01);
+	//auto material_sphere_metal_green = make_shared<metal>(color(0.0, 0.6, 0.2), 0.3);
+	//auto material_glass = make_shared<dielectric>(1.5);
+
+	auto shirley_material_centre = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+	auto shirley_material_left = make_shared<dielectric>(1.5);
+	auto shirley_material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+
 
 	//World
 	auto ground = make_shared<sphere>(point3(0, -100.5, -1), 100, material_ground);
-	auto sphere_middle = make_shared<sphere>(vec3(0.0f, 0.0f, -1.0f), 0.5f, material_sphere_lambertian_red);
-	auto sphere_left = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_sphere_metal);
-	auto sphere_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_sphere_metal_green);
+	//auto sphere_middle = make_shared<sphere>(vec3(0.0f, 0.0f, -1.0f), 0.5f, material_sphere_lambertian_red);
+	//auto sphere_left = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_sphere_metal);
+	//auto sphere_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), -0.4, material_glass);
+
+	auto shirley_left_inner = make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, shirley_material_left);
+	auto shirley_left_outer = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, shirley_material_left);
+	auto shirley_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, shirley_material_right);
+	auto shirley_centre = make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, shirley_material_centre);
 
     hittable_list world;
-	world.add(ground);
-	world.add(std::move(sphere_middle));
-	world.add(std::move(sphere_left));
-	world.add(std::move(sphere_right));
+
+	world.add(std::move(ground));
+
+	world.add(std::move(shirley_left_inner));
+	world.add(std::move(shirley_left_outer));
+	world.add(std::move(shirley_right));
+	world.add(std::move(shirley_centre));
+
+	//world.add(std::move(sphere_middle));
+	//world.add(std::move(sphere_left));
+	//world.add(std::move(sphere_right));
+
 
 	std::cout << "num referendes to ground = " << ground.use_count() << "\n";
 
