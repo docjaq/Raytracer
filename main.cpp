@@ -6,6 +6,7 @@
 #include "hittable_list.h"
 #include "color.h"
 #include "sphere.h"
+#include "material.h"
 
 color ray_color(const ray& r, hittable& world, int depth){
 
@@ -15,9 +16,13 @@ color ray_color(const ray& r, hittable& world, int depth){
 		return color(0, 0, 0);
 
 	if (world.hit(r, 0.001, infinity, rec)){
-		point3 target = rec.p + rec.normal + random_in_unit_sphere();
+		ray scattered;
+		color attenuation;
 
-		return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth-1);
+		//JAQ: not sure I understand the changes here
+		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+			return attenuation * ray_color(scattered, world, depth - 1);
+		return color(0, 0, 0);
 	}
 
 	//If no geometry hit, returns background
@@ -42,12 +47,24 @@ int main() {
 	
 	camera cam;
 
+	auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+	auto material_sphere_lambertian_red = make_shared<lambertian>(color(0.7, 0.3, 0.3));
+	auto material_sphere_metal = make_shared<metal>(color(0.8, 0.8, 0.8));
+	auto material_sphere_metal_green = make_shared<metal>(color(0.0, 0.6, 0.2));
+
 	//World
-	auto ground = make_shared<sphere>(point3(0, -100.5, -1), 100);
-	auto sphere1 = make_shared<sphere>(vec3(0.0f, 0.0f, -1.0f), 0.5f);
+	auto ground = make_shared<sphere>(point3(0, -100.5, -1), 100, material_ground);
+	auto sphere_middle = make_shared<sphere>(vec3(0.0f, 0.0f, -1.0f), 0.5f, material_sphere_lambertian_red);
+	auto sphere_left = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_sphere_metal);
+	auto sphere_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_sphere_metal_green);
+
     hittable_list world;
 	world.add(ground);
-	world.add(sphere1);
+	world.add(std::move(sphere_middle));
+	world.add(std::move(sphere_left));
+	world.add(std::move(sphere_right));
+
+	std::cout << "num referendes to ground = " << ground.use_count() << "\n";
 
     for(int j = image_height-1; j >= 0; --j){
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;

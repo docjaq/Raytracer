@@ -10,6 +10,8 @@ using std::sqrt;
 class vec3 {
 
 public:
+	double e[3];
+
 	vec3() : e{ 0, 0, 0 } {}
 
 	vec3(double e0, double e1, double e2) : e{ e0, e1, e2 } {}
@@ -52,7 +54,11 @@ public:
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
 		
-	double e[3];
+	//Return true if vector is within epsilon of zero in all dimensions
+	bool near_zero() const {
+		const auto s = 1e-8;
+		return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+	}
 
 	inline static vec3 random() {
 		return vec3(random_double(), random_double(), random_double());
@@ -61,7 +67,6 @@ public:
 	inline static vec3 random(double min, double max) {
 		return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
 	}
-
 
 };
 
@@ -114,14 +119,23 @@ inline vec3 unit_vector(vec3 v) {
 	return v / v.length();
 }
 
-//JAQ: This is basically a factory. Confused why it's done like this
-//Sphere sampling rejection method
-vec3 random_in_unit_sphere() {
+//Sphere sampling rejection method for diffuse reflection
+inline vec3 random_in_unit_sphere() {
 	while (true) {
 		auto p = vec3::random(-1, 1);
 		if (p.length_squared() >= 1) continue;
 		return p;
 	}
+}
+
+//Lambertian reflection instead of above
+vec3 random_unit_vector() {
+	return unit_vector(random_in_unit_sphere());
+}
+
+
+inline vec3 reflect(const vec3& v, const vec3& n) {
+	return v - 2 * dot(v, n)*n;
 }
 
 #endif //RAYTRACER_VEC3_H
