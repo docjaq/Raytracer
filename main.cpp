@@ -45,17 +45,20 @@ int main() {
 
 	outputPPM << "P3\n" << image_width << " " << image_height << "\n255\n";
 	
-	point3 cameraPosition(-2, 2, 1);
+	point3 cameraPosition(3, 3, 2);
 	point3 lookAtPosition(0, 0, -1);
 	vec3 up(0, 1, 0);
-	double fov = 40;
-	camera cam(cameraPosition, lookAtPosition, up, fov, aspect_ratio);
+	double fov = 20;
+	double aperture = 0.5;
+	double dist_to_focus = (cameraPosition - lookAtPosition).length();
+
+	camera cam(cameraPosition, lookAtPosition, up, fov, aspect_ratio, aperture, dist_to_focus );
 	
 	//Materials
 	auto shirley_material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
 	auto shirley_material_centre = make_shared<lambertian>(color(0.1, 0.2, 0.5));
 	auto shirley_material_left = make_shared<dielectric>(1.5);
-	auto shirley_material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+	auto shirley_material_right = make_shared<metal>(color(1.0, 0.6, 0.6), 0.0);
 
 	//World
 	hittable_list world;

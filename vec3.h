@@ -119,7 +119,7 @@ inline vec3 unit_vector(vec3 v) {
 	return v / v.length();
 }
 
-//Sphere sampling rejection method for diffuse reflection
+//Sphere sampling rejection for diffuse reflection
 inline vec3 random_in_unit_sphere() {
 	while (true) {
 		auto p = vec3::random(-1, 1);
@@ -131,6 +131,16 @@ inline vec3 random_in_unit_sphere() {
 //Lambertian reflection instead of above
 inline vec3 random_unit_vector() {
 	return unit_vector(random_in_unit_sphere());
+}
+
+//Disc sampling rejection
+vec3 random_in_unit_disk() {
+	while (true) {
+		auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+		if (p.length_squared() >= 1) continue;
+
+		return p;
+	}
 }
 
 
