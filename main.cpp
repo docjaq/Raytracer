@@ -52,7 +52,6 @@ color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
 				currentAttenuation = attenuation * currentAttenuation;
 				current_ray = scattered;
 			}
-
 		}
 		else {
 			vec3 unit_direction = unit_vector(current_ray.direction());
@@ -107,9 +106,6 @@ int main() {
 	auto startTime = std::chrono::high_resolution_clock::now();
 
 	std::vector<color> colorData(image_width*image_height);
-	
-	//std::vector<color> colorData;
-	//colorData.reserve(image_width*image_height);
 
 	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
