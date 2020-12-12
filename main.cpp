@@ -140,8 +140,13 @@ int main() {
 
 	std::vector<color> colorData(image_width*image_height);
 
+	float percComplete = 0;
+
 	for (int j = image_height - 1; j >= 0; --j) {
-		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+
+		percComplete = (((float)image_height - (float)j) / (float)image_height) * 100;
+
+		std::cerr << "\rComplete: " << percComplete << "%" << "                     " << std::flush;
 
 		parallel_for(image_width, [&](int start, int end) {
 			for (int i = start; i < end; ++i) {
