@@ -140,6 +140,8 @@ int main() {
 
 	std::vector<color> colorData(image_width*image_height);
 
+	float percComplete = 0;
+
 	parallel_for(image_height, [&](int start, int end) {
 		for (int j = start; j < end; ++j) {
 			percComplete = (((float)image_height - (float)j) / (float)image_height) * 100;
