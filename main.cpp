@@ -107,11 +107,11 @@ int main() {
 
 	std::vector<color> colorData(image_width*image_height);
 
-	for (int j = image_height - 1; j >= 0; --j) {
-		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+	parallel_for(image_height, [&](int start, int end) {
+		for (int j = start; j < end; ++j) {
+			std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 
-		parallel_for(image_width, [&](int start, int end) {
-			for (int i = start; i < end; ++i) {
+			for (int i = 0; i < image_width; ++i) {
 
 				color pixel_color(0, 0, 0);
 
@@ -127,8 +127,8 @@ int main() {
 
 				colorData[((image_height - 1) - j)*image_width + i] = std::move(pixel_color);
 			}
-		});
-	}
+		}
+	});
 
 	auto finishTime = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime).count();
