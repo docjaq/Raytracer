@@ -2,7 +2,6 @@
 #include <fstream>
 #include <chrono>
 #include <vector>
-#include <execution>
 
 #include "utility.h"
 #include "camera.h"
@@ -107,29 +106,33 @@ int main() {
 
 	auto startTime = std::chrono::high_resolution_clock::now();
 
-	std::vector<color> colorData;
-	colorData.reserve(image_width*image_height);
+	std::vector<color> colorData(image_width*image_height);
+	
+	//std::vector<color> colorData;
+	//colorData.reserve(image_width*image_height);
 
-    for(int j = image_height-1; j >= 0; --j){
+	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 
+		parallel_for(image_width, [&](int start, int end) {
+			for (int i = start; i < end; ++i) {
 
-        for(int i = 0; i < image_width; ++i){
+				color pixel_color(0, 0, 0);
 
-			color pixel_color(0, 0, 0);
+				for (int s = 0; s < samples_per_pixel; ++s) {
 
-			for (int s = 0; s < samples_per_pixel; ++s) {
+					//Send ray from origin, through offset position
+					double u = (i + random_double()) / (image_width - 1);
+					double v = (j + random_double()) / (image_height - 1);
 
-				//Send ray from origin, through offset position
-				double u = (i+random_double()) / (image_width - 1);
-				double v = (j+random_double()) / (image_height - 1);
+					ray r = cam.get_ray(u, v);
+					pixel_color += ray_color_iter(r, world, max_depth);
+				}
 
-				ray r = cam.get_ray(u, v);
-				pixel_color += ray_color_iter(r, world, max_depth);
+				colorData[((image_height - 1) - j)*image_width + i] = std::move(pixel_color);
 			}
-			colorData.push_back(std::move(pixel_color));
-        }
-    }
+		});
+	}
 
 	auto finishTime = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime).count();
