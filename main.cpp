@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <vector>
 
 #include "utility.h"
 #include "camera.h"
@@ -83,19 +85,45 @@ color ray_color(const ray& r, hittable& world, int depth){
 
 }
 
+color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
+
+	
+	ray current_ray = r;
+	color currentAttenuation = vec3(1.0, 1.0, 1.0);
+
+	for (int i = 0; i < maxBounces; ++i) {
+
+		hit_record rec;
+		if (world.hit(current_ray, 0.001, infinity, rec)) {
+			ray scattered;
+			color attenuation;
+ 
+			if (rec.mat_ptr->scatter(current_ray, rec, attenuation, scattered)) {
+				currentAttenuation = attenuation * currentAttenuation;
+				current_ray = scattered;
+			}
+		}
+		else {
+			vec3 unit_direction = unit_vector(current_ray.direction());
+			double t = 0.5*(unit_direction.y() + 1.0);
+
+			return currentAttenuation*((1.0 - t)*color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0));
+		}
+	}
+
+	//If no geometry hit, returns background
+	return vec3(0.0, 0.0, 0.0);
+}
+
 int main() {
-    std::ofstream outputPPM;
-    outputPPM.open ("Output.ppm");
 
 	//Image
 	auto aspect_ratio = 3.0 / 2.0;
 	const int image_width = 1200;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int samples_per_pixel = 500;
+	const int samples_per_pixel = 100;
 	const int max_depth = 50;
 
-	outputPPM << "P3\n" << image_width << " " << image_height << "\n255\n";
-	
 	//Camera
 	point3 cameraPosition(13, 2, 3);
 	point3 lookAtPosition(0, 0, 0);
@@ -108,28 +136,42 @@ int main() {
 	//World
 	auto world = random_scene();
 
-    for(int j = image_height-1; j >= 0; --j){
+	auto startTime = std::chrono::high_resolution_clock::now();
+
+	std::vector<color> colorData(image_width*image_height);
+
+	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 
-        for(int i = 0; i < image_width; ++i){
+		parallel_for(image_width, [&](int start, int end) {
+			for (int i = start; i < end; ++i) {
 
-			color pixel_color(0, 0, 0);
+				color pixel_color(0, 0, 0);
 
-			for (int s = 0; s < samples_per_pixel; ++s) {
+				for (int s = 0; s < samples_per_pixel; ++s) {
 
-				//Send ray from origin, through offset position
-				double u = (i+random_double()) / (image_width - 1);
-				double v = (j+random_double()) / (image_height - 1);
+					//Send ray from origin, through offset position
+					double u = (i + random_double()) / (image_width - 1);
+					double v = (j + random_double()) / (image_height - 1);
 
-				ray r = cam.get_ray(u, v);
+					ray r = cam.get_ray(u, v);
+					pixel_color += ray_color_iter(r, world, max_depth);
+				}
 
-				pixel_color += ray_color(r, world, max_depth);
-
+				colorData[((image_height - 1) - j)*image_width + i] = std::move(pixel_color);
 			}
-			write_color(outputPPM, pixel_color, samples_per_pixel);
-        }
-    }
+		});
+	}
 
-    outputPPM.close();
+	auto finishTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime).count();
+	auto durationSeconds = duration / 1000000.0;
 
+	std::ofstream outputPPM;
+	outputPPM.open("Output.ppm");
+	outputPPM << "P3\n" << image_width << " " << image_height << "\n255\n";
+	write_color(outputPPM, colorData, samples_per_pixel);
+	outputPPM.close();
+
+	std::cout << "Time: " << durationSeconds << " seconds\n";
 }
