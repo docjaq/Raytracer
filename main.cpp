@@ -121,7 +121,7 @@ int main() {
 	auto aspect_ratio = 3.0 / 2.0;
 	const int image_width = 1200;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int samples_per_pixel = 500;
+	const int samples_per_pixel = 20;
 	const int max_depth = 50;
 
 	//Camera
@@ -144,7 +144,9 @@ int main() {
 
 	parallel_for(image_height, [&](int start, int end) {
 		for (int j = start; j < end; ++j) {
-			percComplete = (((float)image_height - (float)j) / (float)image_height) * 100;
+
+			//Can't do this like this as it's totally out of order. Need to sum finished bits at the end instead. And maybe do rays/s
+			percComplete = ((float)j / (float)image_height) * 100;
 			std::cerr << "\rComplete: " << percComplete << "%" << "                     " << std::flush;
 
 			for (int i = 0; i < image_width; ++i) {
