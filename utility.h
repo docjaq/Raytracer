@@ -44,6 +44,7 @@ static void parallel_for(unsigned nb_elements, std::function<void(int start, int
 
 	unsigned nb_threads_hint = std::thread::hardware_concurrency();
 	//unsigned nb_threads = nb_threads_hint == 0 ? 16 : (nb_threads_hint);
+
 	unsigned nb_threads = 32;
 
 	unsigned batch_size = nb_elements / nb_threads;
@@ -51,13 +52,13 @@ static void parallel_for(unsigned nb_elements, std::function<void(int start, int
 
 	std::vector< std::thread > my_threads(nb_threads);
 
-	if (use_threads) {
+	if (use_threads){
 		// Multithread execution
-		for (unsigned i = 0; i < nb_threads; ++i) {
+		for (unsigned i = 0; i < nb_threads; ++i){
 			int start = i * batch_size;
 			my_threads[i] = std::thread(functor, start, start + batch_size);
 		}
-	} else {
+	}else{
 		// Single thread execution (for easy debugging)
 		for (unsigned i = 0; i < nb_threads; ++i) {
 			int start = i * batch_size;

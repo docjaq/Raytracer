@@ -2,6 +2,7 @@
 #include <fstream>
 #include <chrono>
 #include <vector>
+#include <mutex>
 
 #include "utility.h"
 #include "camera.h"
@@ -9,6 +10,8 @@
 #include "color.h"
 #include "sphere.h"
 #include "material.h"
+
+std::mutex mu;
 
 //Test scene render
 hittable_list random_scene() {
@@ -64,27 +67,30 @@ color ray_color(const ray& r, hittable& world, int depth){
 
     hit_record rec;
 
+	//Black if hitting max bounce number (recursion depth)
 	if (depth <= 0)
 		return color(0, 0, 0);
 
+	//Fire a ray into world
 	if (world.hit(r, 0.001, infinity, rec)){
 		ray scattered;
 		color attenuation;
 
-		//JAQ: not sure I understand the changes here
+		//Fire ray (scattered according to material), attenuated product of final color on pop
 		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 			return attenuation * ray_color(scattered, world, depth - 1);
+
 		return color(0, 0, 0);
 	}
 
-	//If no geometry hit, returns background
+	//If no geometry hit, returns background gradient
     vec3 unit_direction = unit_vector(r.direction());
     double t = 0.5*(unit_direction.y() + 1.0);
     
 	return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
-
 }
 
+//Iterative version instead...
 color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
 
 	
@@ -115,6 +121,11 @@ color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
 	return vec3(0.0, 0.0, 0.0);
 }
 
+void LockedOutput(int totalScanLines, int finishedScanLines){
+	std::lock_guard<std::mutex> lock(mu);
+	std::cout << "\r% Complete: " << static_cast<int>((float)finishedScanLines / totalScanLines * 100) << ' ' << std::flush;
+}
+
 int main() {
 
 	//Image
@@ -138,16 +149,17 @@ int main() {
 
 	auto startTime = std::chrono::high_resolution_clock::now();
 
+	//Need to write to datastructure when parallelising
 	std::vector<color> colorData(image_width*image_height);
 
+	int totalScanLines = image_height;
+	int finishedScanLines = 0;
 	float percComplete = 0;
 
 	parallel_for(image_height, [&](int start, int end) {
 		for (int j = start; j < end; ++j) {
-
-			//Can't do this like this as it's totally out of order. Need to sum finished bits at the end instead. And maybe do rays/s
-			percComplete = ((float)j / (float)image_height) * 100;
-			std::cerr << "\rComplete: " << percComplete << "%" << "                     " << std::flush;
+			
+			LockedOutput(totalScanLines, finishedScanLines);
 
 			for (int i = 0; i < image_width; ++i) {
 
@@ -165,8 +177,14 @@ int main() {
 
 				colorData[((image_height - 1) - j)*image_width + i] = std::move(pixel_color);
 			}
+
+			finishedScanLines++;
 		}
 	});
+
+	LockedOutput(totalScanLines, finishedScanLines);
+
+	std::cout << "Writing...";
 
 	auto finishTime = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime).count();
@@ -177,6 +195,8 @@ int main() {
 	outputPPM << "P3\n" << image_width << " " << image_height << "\n255\n";
 	write_color(outputPPM, colorData, samples_per_pixel);
 	outputPPM.close();
+
+	std::cout << "done\n";
 
 	std::cout << "Time: " << durationSeconds << " seconds\n";
 }
