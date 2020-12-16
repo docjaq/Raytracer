@@ -2,6 +2,7 @@
 #include <fstream>
 #include <chrono>
 #include <vector>
+#include <mutex>
 
 #include "utility.h"
 #include "camera.h"
@@ -10,31 +11,36 @@
 #include "sphere.h"
 #include "material.h"
 
+std::mutex mu;
+
 color ray_color(const ray& r, hittable& world, int depth){
 
     hit_record rec;
 
+	//Black if hitting max bounce number (recursion depth)
 	if (depth <= 0)
 		return color(0, 0, 0);
 
+	//Fire a ray into world
 	if (world.hit(r, 0.001, infinity, rec)){
 		ray scattered;
 		color attenuation;
 
-		//JAQ: not sure I understand the changes here
+		//Fire ray (scattered according to material), attenuated product of final color on pop
 		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 			return attenuation * ray_color(scattered, world, depth - 1);
+
 		return color(0, 0, 0);
 	}
 
-	//If no geometry hit, returns background
+	//If no geometry hit, returns background gradient
     vec3 unit_direction = unit_vector(r.direction());
     double t = 0.5*(unit_direction.y() + 1.0);
     
 	return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
-
 }
 
+//Iterative version instead...
 color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
 
 	
@@ -61,18 +67,24 @@ color ray_color_iter(const ray& r, hittable& world, int maxBounces) {
 		}
 	}
 
-	//If no geometry hit, returns background
 	return vec3(0.0, 0.0, 0.0);
+}
+
+void LockedOutput(int totalScanLines, int finishedScanLines){
+	std::lock_guard<std::mutex> lock(mu);
+	std::cout << "\r% Complete: " << static_cast<int>((float)finishedScanLines / totalScanLines * 100) << ' ' << std::flush;
 }
 
 int main() {
 
+	//Some basic parameters
 	auto aspect_ratio = 16.0 / 9.0;
 	const int image_width = 400;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
 	const int samples_per_pixel = 50;
 	const int max_depth = 50;
 
+	//Parameterise camera
 	point3 cameraPosition(3, 3, 2);
 	point3 lookAtPosition(0, 0, -1);
 	vec3 up(0, 1, 0);
@@ -83,33 +95,38 @@ int main() {
 	camera cam(cameraPosition, lookAtPosition, up, fov, aspect_ratio, aperture, dist_to_focus );
 	
 	//Materials
-	auto shirley_material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
-	auto shirley_material_centre = make_shared<lambertian>(color(0.1, 0.2, 0.5));
-	auto shirley_material_left = make_shared<dielectric>(1.5);
-	auto shirley_material_right = make_shared<metal>(color(1.0, 0.6, 0.6), 0.0);
+	auto mat_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+	auto mat_lambertian = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+	auto mat_glass = make_shared<dielectric>(1.5);
+	auto mat_metallic = make_shared<metal>(color(1.0, 0.6, 0.6), 0.0);
 
 	//World
 	hittable_list world;
-	auto ground = make_shared<sphere>(point3(0, -100.5, -1), 100, shirley_material_ground);
+	auto ground = make_shared<sphere>(point3(0, -100.5, -1), 100, mat_ground);
 	
-	auto shirley_left_inner = make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, shirley_material_left);
-	auto shirley_left_outer = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, shirley_material_left);
-	auto shirley_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, shirley_material_right);
-	auto shirley_centre = make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, shirley_material_centre);
+	auto sphere_left_inner = make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, mat_glass);
+	auto sphere_left_outer = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, mat_glass);
+	auto sphere_right = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, mat_metallic);
+	auto sphere_centre = make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, mat_lambertian);
 
 	world.add(std::move(ground));
-	world.add(std::move(shirley_left_inner));
-	world.add(std::move(shirley_left_outer));
-	world.add(std::move(shirley_right));
-	world.add(std::move(shirley_centre));
+	world.add(std::move(sphere_left_inner));
+	world.add(std::move(sphere_left_outer));
+	world.add(std::move(sphere_right));
+	world.add(std::move(sphere_centre));
 
 	auto startTime = std::chrono::high_resolution_clock::now();
 
+	//Need to write to datastructure when parallelising
 	std::vector<color> colorData(image_width*image_height);
+
+	int totalScanLines = image_height;
+	int finishedScanLines = 0;
 
 	parallel_for(image_height, [&](int start, int end) {
 		for (int j = start; j < end; ++j) {
-			std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+			
+			LockedOutput(totalScanLines, finishedScanLines);
 
 			for (int i = 0; i < image_width; ++i) {
 
@@ -127,8 +144,14 @@ int main() {
 
 				colorData[((image_height - 1) - j)*image_width + i] = std::move(pixel_color);
 			}
+
+			finishedScanLines++;
 		}
 	});
+
+	LockedOutput(totalScanLines, finishedScanLines);
+
+	std::cout << "Writing...";
 
 	auto finishTime = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime).count();
@@ -139,6 +162,8 @@ int main() {
 	outputPPM << "P3\n" << image_width << " " << image_height << "\n255\n";
 	write_color(outputPPM, colorData, samples_per_pixel);
 	outputPPM.close();
+
+	std::cout << "done\n";
 
 	std::cout << "Time: " << durationSeconds << " seconds\n";
 }

@@ -11,11 +11,10 @@ public:
 	virtual bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const = 0;
 };
 
-//JAQ Move these materials into separate classes
 class lambertian : public material {
 
 public:
-	color albedo; //JAQ: Try and make private
+	color albedo;
 
 	lambertian(const color& albedoIn) : albedo(albedoIn){}
 
@@ -38,7 +37,7 @@ public:
 class metal : public material {
 
 public:
-	color albedo; //JAQ: Try and make private
+	color albedo;
 	double fuzz;
 
 	metal(const color& albedoIn, double fuzzIn) : albedo(albedoIn), fuzz(fuzzIn < 1 ? fuzzIn : 1) {}

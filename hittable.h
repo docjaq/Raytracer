@@ -4,7 +4,7 @@
 #include "utility.h"
 #include "ray.h"
 
-class material; //JAQ: This is strange
+class material;
 
 struct hit_record{
 	point3 p;
